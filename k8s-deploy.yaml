@@ -24,7 +24,7 @@ data:
   APP_ENV: "production"
   APP_KEY: "base64:QozarhCzkrDT5+8bHe+r/1jSloZjtSLHjsDZTjN+tI0="
   APP_DEBUG: "false"
-  APP_URL: "http://laravel-app.local"
+  APP_URL: "http://php-single-deploy.local"
   LOG_CHANNEL: "stack"
   LOG_LEVEL: "debug"
   DB_CONNECTION: "mysql"
