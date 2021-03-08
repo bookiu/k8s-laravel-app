@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: laravel
+  name: php-single-deploy
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: laravel
+  namespace: php-single-deploy
   name: laravel-app
 data:
   APP_ENV: dev
@@ -17,7 +17,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: laravel
+  namespace: php-single-deploy
   name: laravel-app-env
 data:
   APP_NAME: "Kuberbetes Laravel"
@@ -47,7 +47,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: laravel
+  namespace: php-single-deploy
   name: laravel-app
   labels:
     app: laravel-app
@@ -87,7 +87,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: laravel
+  namespace: php-single-deploy
   name: laravel-app
 spec:
   type: ClusterIP
@@ -103,11 +103,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: laravel
+  namespace: php-single-deploy
   name: laravel-app
 spec:
   rules:
-  - host: laravel-app.local
+  - host: php-single-deploy.local
     http:
       paths:
       - path: /
