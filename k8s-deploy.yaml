@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: laravel
+  name: php-multi-deploy
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: laravel
+  namespace: php-multi-deploy
   name: laravel-app
 data:
   APP_ENV: dev
@@ -17,14 +17,14 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: laravel
+  namespace: php-multi-deploy
   name: laravel-app-env
 data:
   APP_NAME: "Kuberbetes Laravel"
   APP_ENV: "production"
   APP_KEY: "base64:QozarhCzkrDT5+8bHe+r/1jSloZjtSLHjsDZTjN+tI0="
   APP_DEBUG: "false"
-  APP_URL: "http://laravel-app.local"
+  APP_URL: "http://php-multi-deploy.local"
   LOG_CHANNEL: "stack"
   LOG_LEVEL: "debug"
   DB_CONNECTION: "mysql"
@@ -47,48 +47,75 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: laravel
-  name: laravel-app
+  namespace: php-multi-deploy
+  name: laravel-app-nginx
   labels:
-    app: laravel-app
+    app: laravel-app-nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: laravel-app
+      app: laravel-app-nginx
   strategy: {}
   template:
     metadata:
       labels:
-        app: laravel-app
+        app: laravel-app-nginx
     spec:
       containers:
         - name: nginx
-          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-nginx:latest
+          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-nginx:multi-deploy
           imagePullPolicy: Always
-          volumeMounts:
-            - mountPath: /app
-              name: src
-              readOnly: false
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: php-multi-deploy
+  name: laravel-app-phpfpm
+  labels:
+    app: laravel-app-phpfpm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-app-phpfpm
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: laravel-app-phpfpm
+    spec:
+      containers:
         - name: php-fpm
-          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-phpfpm:latest
+          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-phpfpm:multi-deploy
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: laravel-app-env
-          volumeMounts:
-            - mountPath: /app
-              name: src
-              readOnly: false
-      volumes:
-        - name: src
-          emptyDir: {}
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: laravel
-  name: laravel-app
+  namespace: php-multi-deploy
+  name: laravel-app-phpfpm
+spec:
+  type: ClusterIP
+  ports:
+    - name: fastcgi
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+  selector:
+    app: laravel-app-phpfpm
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: php-multi-deploy
+  name: laravel-app-nginx
 spec:
   type: ClusterIP
   ports:
@@ -97,23 +124,23 @@ spec:
       protocol: TCP
       targetPort: 80
   selector:
-    app: laravel-app
+    app: laravel-app-nginx
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: laravel
+  namespace: php-multi-deploy
   name: laravel-app
 spec:
   rules:
-  - host: laravel-app.local
+  - host: php-multi-deploy.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: laravel-app
+            name: laravel-app-nginx
             port:
               number: 80

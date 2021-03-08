@@ -28,7 +28,7 @@ docker push your/repository/k8s-laravel-app-phpfpm:tag
 
 ## 部署到k8s
 
-部署前，请先修改[k8s-deploy.yaml](https://github.com/yaxin-cn/k8s-laravel-app/blob/master/k8s-deploy.yaml)文件`Deployment`中的镜像地址，修改为你自己构建的地址即可。
+部署前，请先修改[k8s-deploy.yaml](https://github.com/yaxin-cn/k8s-laravel-app/blob/multi-deploy/k8s-deploy.yaml)文件`Deployment`中的镜像地址，修改为你自己构建的地址即可。
 
 然后运行下面的命令部署应用：
 
