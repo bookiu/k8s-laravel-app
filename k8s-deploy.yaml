@@ -1,0 +1,119 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: laravel
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: laravel
+  name: laravel-app
+data:
+  APP_ENV: dev
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: laravel
+  name: laravel-app-env
+data:
+  APP_NAME: "Kuberbetes Laravel"
+  APP_ENV: "production"
+  APP_KEY: "base64:QozarhCzkrDT5+8bHe+r/1jSloZjtSLHjsDZTjN+tI0="
+  APP_DEBUG: "false"
+  APP_URL: "http://laravel-app.local"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "debug"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "127.0.0.1"
+  DB_PORT: "3306"
+  DB_DATABASE: "laraval"
+  DB_USERNAME: "root"
+  DB_PASSWORD: ""
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  QUEUE_CONNECTION: "sync"
+  SESSION_DRIVER: "file"
+  SESSION_LIFETIME: "120"
+  MEMCACHED_HOST: "127.0.0.1"
+  REDIS_HOST: "127.0.0.1"
+  REDIS_PASSWORD: "null"
+  REDIS_PORT: "6379"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: laravel
+  name: laravel-app
+  labels:
+    app: laravel-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-app
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: laravel-app
+    spec:
+      containers:
+        - name: nginx
+          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-nginx:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /app
+              name: src
+              readOnly: false
+        - name: php-fpm
+          image: ccr.ccs.tencentyun.com/yaxin-cn/k8s-laravel-app-phpfpm:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: laravel-app-env
+          volumeMounts:
+            - mountPath: /app
+              name: src
+              readOnly: false
+      volumes:
+        - name: src
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: laravel
+  name: laravel-app
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: laravel-app
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: laravel
+  name: laravel-app
+spec:
+  rules:
+  - host: laravel-app.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: laravel-app
+            port:
+              number: 80
