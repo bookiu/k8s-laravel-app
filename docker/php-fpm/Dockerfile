@@ -1,7 +1,9 @@
 # build
-FROM alpine AS builder
+FROM ustc-edu-cn.mirror.aliyuncs.com/library/composer AS builder
 COPY . /app
 RUN cd /app \
+    && composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ \
+    && composer install \
     && rm -rf .git docker Dockerfile .env k8s-deploy.yaml deploy.sh
 
 
